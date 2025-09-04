@@ -1,0 +1,3 @@
+{
+  "technologies": ["apache/airflow", "dbt-labs/dbt-core", "apache/spark", "pandas-dev/pandas", "SQLAlchemy/SQLAlchemy", "great-expectations/great_expectations", "PrefectHQ/prefect", "apache/kafka", "snowflakedb/snowflake-connector-python", "DuckDB/DuckDB"]
+}
