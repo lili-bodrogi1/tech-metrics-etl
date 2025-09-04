@@ -36,9 +36,9 @@ def insert_stg_task(dataset):
 
 @flow(name="tech_metrics_pipeline")
 def main_flow():
-    with open("tech_list.json") as f:
-        data = json.load(f)
-    tech_list = data["technologies"]
+
+    with open("src/extract/technologies.json") as f:
+        tech_list = json.load(f)["technologies"]
 
     for tech in tech_list:
         git_data = fetch_github_task.submit(tech)

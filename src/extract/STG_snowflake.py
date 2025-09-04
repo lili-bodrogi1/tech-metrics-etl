@@ -1,5 +1,6 @@
 import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
+import pandas as pd
 
 def get_connection():
   conn = snowflake.connector.connect(
@@ -37,6 +38,8 @@ def create_stg_table(cursor):
 """)
   
 def insert_stg(connection, dataset):
+  import pandas as pd
+  from snowflake.connector.pandas_tools import write_pandas
   success, nchunks, nrows, _ = write_pandas(
     connection,
     dataset,
