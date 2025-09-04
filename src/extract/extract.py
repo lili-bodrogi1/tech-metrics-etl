@@ -7,9 +7,7 @@ import pandas as pd
 import json
 from datetime import timedelta
 
-connection = get_connection()
-cur = connection.cursor()
-create_stg_table(cur)
+
 
 @task
 def fetch_github_task(tech):
@@ -30,16 +28,14 @@ def merge_task(git_data, pypi_data):
     )
 
 @task
-def insert_stg_task(dataset):
-    import sys
-    import pandas as pd
-    print(pd.__version__)
-    print(sys.executable) 
-    connection
-    insert_stg(connection, dataset)
+def insert_stg_task(cur, dataset):
+    insert_stg(cur, dataset)
 
 @flow(name="tech_metrics_pipeline")
-def main_flow():
+def main_flow(conn):
+
+    cur = conn.cursor()
+    create_stg_table(cur)
 
     with open("src/extract/technologies.json") as f:
         tech_list = json.load(f)["technologies"]
@@ -49,3 +45,5 @@ def main_flow():
         pypi_data = fetch_pypi_task.submit(tech)
         dataset = merge_task.submit(git_data.result(), pypi_data.result())
         insert_stg_task.submit(dataset.result())
+
+    cur.close

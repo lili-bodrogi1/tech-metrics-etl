@@ -9,14 +9,13 @@ def error_condition():
         is_number("VALUE"),
         positive_value("VALUE"),
         is_date("METRIC_DATE"),
-        is_date("COLLECTION_DATE"),
         date_constraint("METRIC_DATE", "COLLECTION_DATE")
     ]
     return " OR ".join(conditions)
 
 def move_err_rows(connection, source_table="TECH_METRICS.STG.METRICS", err_table="TECH_METRICS.ERR.METRICS_FAILS"):
 
-    condition = generate_error_condition()
+    condition = error_condition()
 
     sql = f"""
     INSERT INTO {err_table}(
@@ -61,17 +60,19 @@ def move_good_rows(connection, source_table="TECH_METRICS.STG.METRICS", err_tabl
     VALUE NUMBER,
     METRIC_DATE STRING,
     COLLECTION_DATE TIMESTAMP
+    );
     """
+    connection.cursor().execute(sql)
 
     sql = f"""
     INSERT INTO TECH_METRICS.SILVER.METRICS
     SELECT *
-    FROM {source_table}
+    FROM {source_table} s
     WHERE NOT EXISTS (
         SELECT 1 FROM {err_table} e
-        WHERE e.TECHNOLOGY = {source_table}.TECHNOLOGY
-          AND e.METRIC_NAME = {source_table}.METRIC_NAME
-          AND e.COLLECTION_DATE = {source_table}.COLLECTION_DATE
-    )
+        WHERE e.TECHNOLOGY = s.TECHNOLOGY
+          AND e.METRIC_NAME = s.METRIC_NAME
+          AND e.COLLECTION_DATE = s.COLLECTION_DATE
+    );
     """
     connection.cursor().execute(sql)

@@ -7,7 +7,7 @@ def get_connection():
       account="qnzvtpj-sxb12589",
       warehouse="SCALETECH_WH",
       database="TECH_METRICS",
-      schema="STA"
+      #schema=schema
   )
   return conn
 
@@ -36,15 +36,36 @@ def create_stg_table(cursor):
   )
 """)
   
-def insert_stg(connection, dataset):
-  import pandas as pd
-  from snowflake.connector.pandas_tools import write_pandas
+def insert_stg(cursor, dataset, batch_size=1000):
+    
+    if hasattr(dataset, "to_dict"):
+        records = dataset.to_dict(orient="records")
+    else:
+        records = dataset
 
-  success, nchunks, nrows, _ = write_pandas(
-    connection,
-    dataset,
-    table_name="METRICS",
-    database="TECH_METRICS",
-    schema="STG"
-  )
-  print("insert done")
+    columns = ["TECHNOLOGY", "SOURCE", "METRIC_NAME", "VALUE", "METRIC_DATE", "COLLECTION_DATE"]
+    col_str = ", ".join(columns)
+
+    def chunks(lst, n):
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+
+    for batch in chunks(records, batch_size):
+        values_list = []
+        for row in batch:
+            vals = []
+            for col in columns:
+                val = row.get(col)
+                if val is None:
+                    vals.append("NULL")
+                elif isinstance(val, str):
+                    vals.append(f"'{val.replace('\'', '\'\'')}'")
+                elif isinstance(val, (int, float)):
+                    vals.append(str(val))
+                else:
+                    vals.append(f"'{str(val)}'")
+            values_list.append(f"({', '.join(vals)})")
+        
+        values_str = ",\n".join(values_list)
+        sql = f"INSERT INTO TECH_METRICS.STG.METRICS ({col_str}) VALUES\n{values_str}"
+        cursor.execute(sql)
