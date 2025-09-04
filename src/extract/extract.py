@@ -1,8 +1,8 @@
 from prefect import flow, task
-from github_api import get_github_metrics
-from pypi_api import get_pypi_api
-from STG_snowflake import get_connection, create_stg_table, insert_stg
-from dataset import merge_data
+from .github_api import get_github_metrics
+from .pypi_api import get_pypi_api
+from .STG_snowflake import get_connection, create_stg_table, insert_stg
+from .dataset import merge_data
 import pandas as pd
 import json
 from datetime import timedelta
@@ -31,6 +31,10 @@ def merge_task(git_data, pypi_data):
 
 @task
 def insert_stg_task(dataset):
+    import sys
+    import pandas as pd
+    print(pd.__version__)
+    print(sys.executable) 
     connection
     insert_stg(connection, dataset)
 
@@ -45,6 +49,3 @@ def main_flow():
         pypi_data = fetch_pypi_task.submit(tech)
         dataset = merge_task.submit(git_data.result(), pypi_data.result())
         insert_stg_task.submit(dataset.result())
-
-if __name__ == "__main__":
-    main_flow()

@@ -1,6 +1,4 @@
 import snowflake.connector
-from snowflake.connector.pandas_tools import write_pandas
-import pandas as pd
 
 def get_connection():
   conn = snowflake.connector.connect(
@@ -33,13 +31,15 @@ def create_stg_table(cursor):
     METRIC_NAME STRING,
     VALUE NUMBER,
     METRIC_DATE STRING,
-    COLLECTION_DATE TIMESTAMP
+    COLLECTION_DATE TIMESTAMP,
+    ERR_REASON STRING
   )
 """)
   
 def insert_stg(connection, dataset):
   import pandas as pd
   from snowflake.connector.pandas_tools import write_pandas
+
   success, nchunks, nrows, _ = write_pandas(
     connection,
     dataset,
