@@ -6,10 +6,9 @@ from extract.STG_snowflake import get_connection
 @flow(name="full_tech_metrics_pipeline")
 def full_pipeline():
     #staging = get_connection("STG")
+    connection = get_connection()
 
     #extract_flow(connection)
-
-    connection = get_connection()
 
     validate_flow(connection)
 

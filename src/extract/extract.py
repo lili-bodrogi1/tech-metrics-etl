@@ -6,6 +6,7 @@ from .dataset import merge_data
 import pandas as pd
 import json
 from datetime import timedelta
+from prefect.cache_policies import NO_CACHE
 
 
 
@@ -27,7 +28,7 @@ def merge_task(git_data, pypi_data):
         "open_issues_count"
     )
 
-@task
+@task(cache_policy=NO_CACHE)
 def insert_stg_task(cur, dataset):
     insert_stg(cur, dataset)
 
@@ -44,6 +45,6 @@ def main_flow(conn):
         git_data = fetch_github_task.submit(tech)
         pypi_data = fetch_pypi_task.submit(tech)
         dataset = merge_task.submit(git_data.result(), pypi_data.result())
-        insert_stg_task.submit(dataset.result())
+        insert_stg_task.submit(cur, dataset.result())
 
     cur.close

@@ -17,6 +17,10 @@ def move_err_rows(connection, source_table="TECH_METRICS.STG.METRICS", err_table
 
     condition = error_condition()
 
+    cur = connection.cursor()
+    cur.execute(f"SELECT COALESCE(MAX(COLLECTION_DATE), '1900-01-01') FROM {err_table}")
+    last_err_date = cur.fetchone()[0]
+
     sql = f"""
     INSERT INTO {err_table}(
         TECHNOLOGY,
@@ -35,17 +39,19 @@ def move_err_rows(connection, source_table="TECH_METRICS.STG.METRICS", err_table
         METRIC_DATE,
         COLLECTION_DATE,
         CASE
-            WHEN TECHNOLOGY IS NULL THEN 'TECHNOLOGY is NULL'
-            WHEN VALUE IS NULL THEN 'VALUE is NULL'
-            WHEN COLLECTION_DATE IS NULL THEN 'COLLECTION_DATE is NULL'
-            WHEN METRIC_DATE IS NULL THEN 'METRIC_DATE is NULL'
+            WHEN TECHNOLOGY IS NULL THEN 'Technology name is NULL'
+            WHEN VALUE IS NULL THEN 'Value is NULL'
+            WHEN COLLECTION_DATE IS NULL THEN 'collection date is NULL'
+            WHEN METRIC_DATE IS NULL THEN 'Metric date is NULL'
             WHEN TRY_TO_NUMBER(VALUE) IS NULL THEN 'VALUE not a number'
-            WHEN VALUE < 0 THEN 'VALUE < 0'
-            WHEN METRIC_DATE > COLLECTION_DATE THEN 'METRIC_DATE > COLLECTION_DATE'
+            WHEN VALUE < 0 THEN 'Value is negative'
+            WHEN TRY_TO_DATE(METRIC_DATE) IS NULL THEN 'Metric date is not accepted'
+            WHEN METRIC_DATE > COLLECTION_DATE THEN 'Invalid metric date'
             ELSE 'Unknown'
         END AS Err_reason
     FROM {source_table}
     WHERE {condition}
+    AND COLLECTION_DATE > '{last_err_date}'
     """
     connection.cursor().execute(sql)
 
@@ -64,6 +70,10 @@ def move_good_rows(connection, source_table="TECH_METRICS.STG.METRICS", err_tabl
     """
     connection.cursor().execute(sql)
 
+    cur = connection.cursor()
+    cur.execute(f"SELECT COALESCE(MAX(COLLECTION_DATE), '1900-01-01') FROM TECH_METRICS.SILVER.METRICS")
+    silver_last_load = cur.fetchone()[0]
+
     sql = f"""
     INSERT INTO TECH_METRICS.SILVER.METRICS
     SELECT *
@@ -73,6 +83,7 @@ def move_good_rows(connection, source_table="TECH_METRICS.STG.METRICS", err_tabl
         WHERE e.TECHNOLOGY = s.TECHNOLOGY
           AND e.METRIC_NAME = s.METRIC_NAME
           AND e.COLLECTION_DATE = s.COLLECTION_DATE
-    );
+    )
+    AND s.COLLECTION_DATE > '{silver_last_load}';
     """
     connection.cursor().execute(sql)
