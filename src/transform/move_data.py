@@ -2,7 +2,7 @@ from .validation import not_null, is_number, positive_value, is_date, date_const
 
 def error_condition():
     """
-    All validations into one SQL condition for ERR table
+    The validations into one SQL for ERR table
     """
     conditions = [
         not_null(["TECHNOLOGY", "VALUE", "METRIC_DATE", "COLLECTION_DATE"]),
