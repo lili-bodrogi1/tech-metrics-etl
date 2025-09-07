@@ -41,5 +41,5 @@ This project collects, cleans, and aggregates data about popular data engineerin
 
 ## How to Run
 1. most of the used dependecies can be found in the requirements.txt
-2. The code uses Prefect (in my case DCloud) to run, so possibly a Linked prefect account is needed.
+2. The code uses Prefect (in my case Prefect Cloud) to run, so possibly a Linked prefect account is needed.
 3. run the main_pipeline.py. It should collect all raw data and then validate and then load it into the gold layers' table.
