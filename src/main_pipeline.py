@@ -9,9 +9,9 @@ def full_pipeline():
     #staging = get_connection("STG")
     connection = get_connection()
 
-    #extract_flow(connection)
+    extract_flow(connection)
 
-    #validate_flow(connection)
+    validate_flow(connection)
 
     gold_flow(connection)
 
