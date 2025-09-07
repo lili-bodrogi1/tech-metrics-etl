@@ -2,4 +2,3 @@ pandas
 snowflake-connector-python
 httpx
 prefect
-great-expectations[snowflake]>=0.17.0
