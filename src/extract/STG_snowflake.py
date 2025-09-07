@@ -1,13 +1,13 @@
 import snowflake.connector
+import os
 
 def get_connection():
   conn = snowflake.connector.connect(
-      user="NIL193",
-      password="SnFl452+O_kE21",
-      account="qnzvtpj-sxb12589",
+      user=os.environ.get("SNOWFLAKE_USER"),
+      password=os.environ.get("SNOWFLAKE_PASSWORD"),
+      account=os.environ.get("SNOWFLAKE_ACCOUNT"),
       warehouse="SCALETECH_WH",
       database="TECH_METRICS",
-      #schema=schema
   )
   return conn
 
